@@ -1,5 +1,5 @@
 syntax = "proto3"; 
-option csharp_namespace = "StateTest1.Client";
+option csharp_namespace = "GrpcStateClient";
 package AppStatePackage;
 
 service AppStateTransport {

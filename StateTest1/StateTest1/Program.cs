@@ -1,4 +1,4 @@
-using StateTest1.Client.Pages;
+using GrpcStateServiceProvider; // Required for the AppStateTransportService
 using StateTest1.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,12 +7,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
+// Required for the AppStateTransportService
 builder.Services.AddGrpc();
 
 var app = builder.Build();
 
+// Required for the AppStateTransportService
 app.UseGrpcWeb();
 
+// Required for the AppStateTransportService
 app.MapGrpcService<AppStateTransportService>().EnableGrpcWeb();
 
 // Configure the HTTP request pipeline.

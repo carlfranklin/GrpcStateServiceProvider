@@ -5,7 +5,7 @@ using Google.Protobuf;
 using Microsoft.JSInterop;
 using System.Runtime.CompilerServices;
 
-namespace StateTest1.Client;
+namespace GrpcStateClient;
 public class AppStateProviderBase : ComponentBase, IAsyncDisposable
 {
     [Inject]

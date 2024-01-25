@@ -2,13 +2,15 @@ using Grpc.Net.Client.Web;
 using Grpc.Net.Client;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using StateTest1.Client;
+using GrpcStateClient;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
+// Required for calling the AppStateTransportService
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = 
     new Uri(builder.HostEnvironment.BaseAddress) });
 
+// Required for calling the AppStateTransportService
 builder.Services.AddSingleton(services =>
 {
     var httpClient = new HttpClient(new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()));

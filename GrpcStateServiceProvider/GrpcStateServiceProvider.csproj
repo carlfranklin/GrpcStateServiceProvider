@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Grpc.AspNetCore" Version="2.60.0" />
+		<PackageReference Include="Grpc.AspNetCore.Web" Version="2.60.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\GrpcStateClient\GrpcStateClient.csproj" />
+	</ItemGroup>
+
+</Project>

@@ -1,6 +1,8 @@
 ﻿using Google.Protobuf;
 using Grpc.Core;
-using StateTest1.Client;
+using GrpcStateClient;
+namespace GrpcStateServiceProvider;
+
 public class AppStateTransportService : AppStateTransport.AppStateTransportBase
 {
     public override Task<AppStateMessage> GetAppState(GetAppStateRequest request,
