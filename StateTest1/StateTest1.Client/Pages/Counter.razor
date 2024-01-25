@@ -1,0 +1,42 @@
+﻿@page "/counter"
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Counter</PageTitle>
+
+@if (!loaded)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <MyStateBag @ref=stateBag>
+
+        <h1>Counter</h1>
+
+        <p role="status">Current count: @stateBag.Count</p>
+
+        <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+    </MyStateBag>
+}
+
+@code {
+
+    bool loaded = false;
+
+    private MyStateBag stateBag { get; set; }
+
+    private void IncrementCount()
+    {
+        stateBag.Count++;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            loaded = true;
+            StateHasChanged();
+        }
+    }
+}

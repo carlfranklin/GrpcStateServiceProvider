@@ -1,0 +1,43 @@
+﻿@inherits AppStateProviderBase
+@implements IAppState
+
+@ChildContent
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    private string message = "";
+    public string Message
+    {
+        get => message;
+        set
+        {
+            if (message != value)
+            {
+                message = value;
+                PropertyChanged(value);
+            }
+        }
+    }
+
+    private int count = 0;
+    public int Count
+    {
+        get => count;
+        set
+        {
+            if (count != value)
+            {
+                count = value;
+                PropertyChanged(value);
+            }
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        base.State = this;
+    }
+}

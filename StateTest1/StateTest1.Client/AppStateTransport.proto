@@ -1,0 +1,22 @@
+syntax = "proto3"; 
+option csharp_namespace = "StateTest1.Client";
+package AppStatePackage;
+
+service AppStateTransport {
+	rpc GetAppState (GetAppStateRequest) returns (AppStateMessage) {}
+	rpc UpdateAppState (AppStateMessage) returns (UpdateAppStateResponse) {}
+}
+
+message UpdateAppStateResponse {
+	string message = 1;
+}
+
+message GetAppStateRequest {
+	string clientId = 1;
+}
+
+message AppStateMessage {
+	string clientId = 1;
+	string errorMessage = 2;
+	bytes data = 3;
+}
