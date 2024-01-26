@@ -8,26 +8,26 @@ public class AppStateTransportService : AppStateTransport.AppStateTransportBase
     public override Task<AppStateMessage> GetAppState(GetAppStateRequest request,
         ServerCallContext context)
     {
-        var returnValue = new AppStateMessage();
+        var response = new AppStateMessage();
         try
         {
             string clientId = request.ClientId;
-            returnValue.ClientId = clientId;
-            returnValue.ErrorMessage = "";
+            response.ClientId = clientId;
+            response.ErrorMessage = "";
 
             if (!ServerSideStateBag.State.ContainsKey(clientId))
             {
                 ServerSideStateBag.State.Add(clientId, new byte[0]);
             }
 
-            returnValue.Data = ByteString.CopyFrom(ServerSideStateBag.State[clientId]);
-            return Task.FromResult(returnValue);
+            response.Data = ByteString.CopyFrom(ServerSideStateBag.State[clientId]);
+            return Task.FromResult(response);
         }
         catch (Exception ex)
         {
-            returnValue.ErrorMessage = ex.Message;
-            returnValue.Data = ByteString.Empty;
-            return Task.FromResult(returnValue);
+            response.ErrorMessage = ex.Message;
+            response.Data = ByteString.Empty;
+            return Task.FromResult(response);
         }
     }
 
@@ -36,6 +36,7 @@ public class AppStateTransportService : AppStateTransport.AppStateTransportBase
     {
         string clientId = request.ClientId;
         var data = request.Data.ToByteArray();
+
         try
         {
             if (!ServerSideStateBag.State.ContainsKey(clientId))

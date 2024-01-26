@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcStateServiceProvider", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcStateClient", "GrpcStateClient\GrpcStateClient.csproj", "{45833161-8716-4D48-B22F-DD44BE924952}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StateNotificationLibrary", "StateNotificationLibrary\StateNotificationLibrary.csproj", "{99B5D818-E95E-48E3-B074-B67D285EA539}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{45833161-8716-4D48-B22F-DD44BE924952}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45833161-8716-4D48-B22F-DD44BE924952}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45833161-8716-4D48-B22F-DD44BE924952}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99B5D818-E95E-48E3-B074-B67D285EA539}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99B5D818-E95E-48E3-B074-B67D285EA539}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99B5D818-E95E-48E3-B074-B67D285EA539}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99B5D818-E95E-48E3-B074-B67D285EA539}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

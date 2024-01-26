@@ -6,11 +6,11 @@ using GrpcStateClient;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-// Required for calling the AppStateTransportService
+// Required for calling the AppStateTransportService via GrpcStateClient
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = 
     new Uri(builder.HostEnvironment.BaseAddress) });
 
-// Required for calling the AppStateTransportService
+// Required for calling the AppStateTransportService via GrpcStateClient
 builder.Services.AddSingleton(services =>
 {
     var httpClient = new HttpClient(new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()));

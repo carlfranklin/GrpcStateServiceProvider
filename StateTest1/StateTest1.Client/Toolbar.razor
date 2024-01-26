@@ -1,0 +1,23 @@
+﻿@rendermode InteractiveWebAssembly
+
+@if (loaded)
+{
+    <MyStateBag @ref=stateBag>
+        @stateBag.Message
+    </MyStateBag>
+}
+
+@code {
+
+    bool loaded = false;
+    private MyStateBag stateBag { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            loaded = true;
+            StateHasChanged();
+        }
+    }
+}
