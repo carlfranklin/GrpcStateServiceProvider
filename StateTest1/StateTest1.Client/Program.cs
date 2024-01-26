@@ -1,8 +1,9 @@
 using Grpc.Net.Client.Web;
 using Grpc.Net.Client;
+using GrpcStateClient;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using GrpcStateClient;
+
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 

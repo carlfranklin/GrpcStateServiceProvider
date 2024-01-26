@@ -22,6 +22,9 @@ public class AppStateProviderBase : ComponentBase, IAsyncDisposable
     [Inject]
     public AppStateTransport.AppStateTransportClient _appStateTransportClient { get; set; }
 
+    // required for JavaScript interop
+    private Lazy<Task<IJSObjectReference>> moduleTask;
+
     // AppState is defined in StateTypes, outside of this project so it can
     // be easily modified by the developer
     private AppState AppState { get; set; } = null;
@@ -86,12 +89,17 @@ public class AppStateProviderBase : ComponentBase, IAsyncDisposable
             // subscribe to the StateChanged event
             NotificationService.StateChanged += NotificationService_StateChanged;
 
+            moduleTask = new(() => _jsRuntime.InvokeAsync<IJSObjectReference>(
+                "import", "./_content/GrpcStateClient/JsInterop.js").AsTask());
+
+            var module = await moduleTask.Value;
+
             // create a unique id for this client, or get it from a cookie
-            myId = await _jsRuntime.InvokeAsync<string>("getCookie", "stateBagId");
+            myId = await module.InvokeAsync<string>("getCookie", "stateBagId");
             if (string.IsNullOrEmpty(myId))
             {
                 myId = Guid.NewGuid().ToString();
-                await _jsRuntime.InvokeVoidAsync("setCookie", "stateBagId", myId, 365);
+                await module.InvokeVoidAsync("setCookie", "stateBagId", myId, 365);
             }
             // load the state from the server
             await LoadStateFromServer();
@@ -174,6 +182,11 @@ public class AppStateProviderBase : ComponentBase, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if (moduleTask.IsValueCreated)
+        {
+            var module = await moduleTask.Value;
+            await module.DisposeAsync();
+        }
         // unsubscribe from the StateChanged event
         NotificationService.StateChanged -= NotificationService_StateChanged;
         // update the state on the server
