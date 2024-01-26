@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
@@ -25,6 +25,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\StateNotificationLibrary\StateNotificationLibrary.csproj" />
+	  <ProjectReference Include="..\StateTypes\StateTypes.csproj" />
 	</ItemGroup>
 
 </Project>

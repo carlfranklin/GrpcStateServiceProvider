@@ -5,8 +5,15 @@ using Google.Protobuf;
 using Microsoft.JSInterop;
 using System.Runtime.CompilerServices;
 using StateNotificationService;
+using StateTypes;
 
 namespace GrpcStateClient;
+
+/// <summary>
+/// This is a base component for an AppState component, which can be
+/// created by the developer for their particular needs.
+/// 
+/// </summary>
 public class AppStateProviderBase : ComponentBase, IAsyncDisposable
 {
     [Inject]
@@ -15,62 +22,54 @@ public class AppStateProviderBase : ComponentBase, IAsyncDisposable
     [Inject]
     public AppStateTransport.AppStateTransportClient _appStateTransportClient { get; set; }
 
-    /// <summary>
-    /// This will hold the property values
-    /// </summary>
-    public Dictionary<string, StateItem> Properties { get; set; } = new Dictionary<string, StateItem>();
-
+    // AppState is defined in StateTypes, outside of this project so it can
+    // be easily modified by the developer
+    private AppState AppState { get; set; } = null;
+    
+    // Represents a uniuqe id for this client, saved as a cookie.
     private string myId = string.Empty;
 
-    protected object GetPropertyValue<T>([CallerMemberName] string propertyName = null)
+    // Ensures that AppState is not null
+    private void EnsureAppState()
     {
-        if (Properties.TryGetValue(propertyName, out StateItem item))
+        if (AppState == null)
         {
-            // get the type from the item.TypeName property
-            var type = Type.GetType(item.TypeName);
-            var typeName = type.Name;
-            object value1 = item.Value;
-            if (value1 == null)
-                return default(T);
-            else
+            // go get the appstate from the server if it's null
+            new Task(async () =>
             {
-                if (type.IsValueType)
-                    value1 = (T)Convert.ChangeType(value1, typeof(T));
-                else if (typeName == "String")
-                    value1 = value1.ToString();
-                else
-                {
-                    // Handle Nullable types
-                    System.Type targetType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-                    value1 = (T)Convert.ChangeType(value1, targetType);
-                }
-                return value1;
+                await LoadStateFromServer();
+            }).Start();
+
+            // If the server doesn't have it, return a new appstate
+            if (AppState == null)
+            {
+                AppState = new AppState();
             }
-        }
-        else
-        {
-            // return the default value for this type
-            return default(T);
         }
     }
 
+    // Called by parent components to get a property value from AppState
+    protected T GetPropertyValue<T>([CallerMemberName] string propertyName = null)
+    {
+        EnsureAppState();
+        // use Reflection to get the property value from AppState
+        var property = AppState.GetType().GetProperty(propertyName);
+        return (T)property.GetValue(AppState);
+    }
+
+    // Called by parent components to set a property value in AppState
     protected void SetPropertyValue(object value, [CallerMemberName] string propertyName = null)
     {
-        // Add or update the property value in the dictionary
-        // Create a StateItem from the value and propertyName
-        var item = new StateItem
-        {
-            PropertyName = propertyName,
-            TypeName = value.GetType().AssemblyQualifiedName,
-            Value = value
-        };
+        EnsureAppState();
 
-        Properties[propertyName] = item;
+        // use Reflection to set the property value on AppState
+        var property = AppState.GetType().GetProperty(propertyName);
+        property.SetValue(AppState, value);
 
         // Sync to the server
         new Task(async () =>
         {
-            await SyncState();
+            await UpdateStateOnServer();
         }).Start();
 
         // Notify any components that the property has changed
@@ -84,11 +83,23 @@ public class AppStateProviderBase : ComponentBase, IAsyncDisposable
     {
         if (firstRender)
         {
-            await Init();
+            // subscribe to the StateChanged event
+            NotificationService.StateChanged += NotificationService_StateChanged;
+
+            // create a unique id for this client, or get it from a cookie
+            myId = await _jsRuntime.InvokeAsync<string>("getCookie", "stateBagId");
+            if (string.IsNullOrEmpty(myId))
+            {
+                myId = Guid.NewGuid().ToString();
+                await _jsRuntime.InvokeVoidAsync("setCookie", "stateBagId", myId, 365);
+            }
+            // load the state from the server
+            await LoadStateFromServer();
         }
     }
 
-    public async Task Reload()
+    // Uses gRPC to get the the current AppState from the server
+    public async Task LoadStateFromServer()
     {
         var request = new GetAppStateRequest();
         request.ClientId = myId;
@@ -96,75 +107,47 @@ public class AppStateProviderBase : ComponentBase, IAsyncDisposable
         // go get the state
         AppStateMessage state = await _appStateTransportClient.GetAppStateAsync(request);
 
+        // null?
+        if (state == null)
+        {
+            // create a new AppState if it's still null
+            if (AppState == null)
+                AppState = new AppState();
+            return;
+        }
+
         // convert the state.Data to a byte array
         var data = state.Data.ToByteArray();
 
-        if (data.Length > 0)
+        // empty?
+        if (data.Length == 0)
         {
-            // convert bytes to json
-            var json = Encoding.UTF8.GetString(data);
+            // create a new AppState if it's still null
+            if (AppState == null)
+                AppState = new AppState();
+            return;
+        }
 
-            // deserialize the json into the properties
-            var dictionary = JsonSerializer.Deserialize<Dictionary<string, StateItem>>(json);
-            foreach (var kvp in dictionary)
-            {
-                var item = kvp.Value;
-                // get the type from the item.TypeName property
-                var type = System.Type.GetType(item.TypeName);
-                object value = item.Value;
+        // convert bytes to json
+        var json = Encoding.UTF8.GetString(data);
 
-                JsonElement element = (JsonElement)value;
+        // deserialize the json into an AppState object
+        var appState = JsonSerializer.Deserialize<AppState>(json);
 
-                switch (element.ValueKind)
-                {
-                    case JsonValueKind.String:
-                        item.Value = element.GetString();
-                        break;
-                    case JsonValueKind.Number:
-                        item.Value = element.GetDecimal();
-                        break;
-                    case JsonValueKind.True:
-                    case JsonValueKind.False:
-                        item.Value = element.GetBoolean();
-                        break;
-                    case JsonValueKind.Array:
-                        item.Value = element.EnumerateArray().ToList();
-                        break;
-                    case JsonValueKind.Object:
-                        item.Value = element.EnumerateObject().ToDictionary(k => k.Name, v => v.Value);
-                        break;
-                    default:
-                        item.Value = null;
-                        break;
-                }
-                if (!Properties.ContainsKey(kvp.Key))
-                    Properties.Add(kvp.Key, item);
-                else
-                    Properties[kvp.Key].Value = item;
-            }
-
+        // set each property on the current AppState object using Reflection
+        foreach (var property in appState.GetType().GetProperties())
+        {
+            var value = property.GetValue(appState);
+            property.SetValue(AppState, value);
         }
         StateHasChanged();
     }
 
-    public async Task Init()
+    // Uses gRPC to update the AppState on the server
+    public async Task UpdateStateOnServer()
     {
-        NotificationService.StateChanged += NotificationService_StateChanged;
-
-        myId = await _jsRuntime.InvokeAsync<string>("getCookie", "stateBagId");
-        if (string.IsNullOrEmpty(myId))
-        {
-            myId = Guid.NewGuid().ToString();
-            await _jsRuntime.InvokeVoidAsync("setCookie", "stateBagId", myId, 365);
-        }
-
-        await Reload(); 
-    }
-
-    public async Task SyncState()
-    {
-        // serialize the Properties dictionary into Json
-        var json = JsonSerializer.Serialize(Properties);
+        // serialize the AppState object to json
+        var json = JsonSerializer.Serialize(AppState);
 
         // convert to a byte array
         var bytes = Encoding.UTF8.GetBytes(json);
@@ -182,13 +165,18 @@ public class AppStateProviderBase : ComponentBase, IAsyncDisposable
     // Handlle the NotificationService_StateChanged event
     private async void NotificationService_StateChanged(object sender, StatePropertyChangedArgs e)
     {
-        await Reload();
+        // update the property value on AppState
+        var property = AppState.GetType().GetProperty(e.PropertyName);
+        property.SetValue(AppState, e.NewValue);
+        // force a re-render
         await InvokeAsync(StateHasChanged);
     }
 
     public async ValueTask DisposeAsync()
     {
+        // unsubscribe from the StateChanged event
         NotificationService.StateChanged -= NotificationService_StateChanged;
-        await SyncState();
+        // update the state on the server
+        await UpdateStateOnServer();
     }
 }
