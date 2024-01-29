@@ -9,11 +9,11 @@
 }
 else
 {
-    <AppStateProvider @ref=stateBag >
+    <AppStateProvider @ref=appState >
 
         <h1>Counter</h1>
 
-        <p role="status">Current count: @stateBag.Counter</p>
+        <p role="status">Current count: @appState.Counter</p>
 
         <button class="btn btn-primary" @onclick="IncrementCount">Increment Counter</button>
 
@@ -26,16 +26,16 @@ else
 
     bool loaded = false;
 
-    private AppStateProvider stateBag { get; set; }
+    private AppStateProvider appState { get; set; }
 
     private void IncrementCount()
     {
-        stateBag.Counter++;
+        appState.Counter++;
     }
 
     private void UpdateMessage()
     {
-        stateBag.Message = $"Hello from Counter at {DateTime.Now.ToLongTimeString()}";
+        appState.Message = $"Hello from Counter at {DateTime.Now.ToLongTimeString()}";
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

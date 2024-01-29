@@ -1,8 +1,18 @@
-# Adding State to Blazor 8 per/page component apps
+# GrpcStateServiceProvider
 
-Step 1 is to create a new Blazor Web App using .NET 8.
+`GrpcStateServiceProvider` fixes a problem with .NET 8 Blazor Web Apps where scoped services are repeatedly created and destroyed, making state persistence impossible. 
 
-Add the following package to the the solution (both projects):
+IT supports .NET 8 Blazor Web Apps with **WebAssembly interactive render mode**, when the interactivity location is set to **per page/component**.
+
+If you are using the **Global** interactivity location, you do not need this library.
+
+This package must be installed on both the client and the server project.
+
+Step 1 is to create a new Blazor Web App using .NET 8 with the interactive render mode set to WebAssembly and the Interactivity location set to per page/component.
+
+![image-20240128225722883](images/image-20240128225722883.png)
+
+Add the following NuGet package to the the solution (both projects):
 
 ```
 GrpcStateServiceProvider
@@ -134,6 +144,8 @@ To the client project, add a new Razor component:
 }
 ```
 
+This is your custom AppState provider that understands your AppState class.
+
 ### Usage
 
 Replace *Counter.razor* with the following:
@@ -150,11 +162,11 @@ Replace *Counter.razor* with the following:
 }
 else
 {
-    <AppStateProvider @ref=AppState>
+    <AppStateProvider @ref=appState>
 
         <h1>Counter</h1>
 
-        <p role="status">Current count: @AppState.Count</p>
+        <p role="status">Current count: @appState.Count</p>
 
         <button class="btn btn-primary" @onclick="IncrementCount">Increment Counter</button>
 
@@ -167,16 +179,16 @@ else
 
     bool loaded = false;
 
-    private AppStateProvider AppState { get; set; }
+    private AppStateProvider appState { get; set; }
 
     private void IncrementCount()
     {
-        AppState.Count++;
+        appState.Count++;
     }
 
     private void UpdateMessage()
     {
-        AppState.Message = $"Hello from Counter at {DateTime.Now.ToLongTimeString()}";
+        appState.Message = $"Hello from Counter at {DateTime.Now.ToLongTimeString()}";
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -205,15 +217,15 @@ To the client project, add the following Razor component:
 
 @if (loaded)
 {
-    <AppStateProvider @ref=AppState>
-        @AppState.Message
+    <AppStateProvider @ref=appState>
+        @appState.Message
     </AppStateProvider>
 }
 
 @code {
 
     bool loaded = false;
-    private AppStateProvider AppState { get; set; }
+    private AppStateProvider appState { get; set; }
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -254,5 +266,5 @@ Modify *MainLayout.razor* to show the Toolbar:
 </div>
 ```
 
-Run the app, navigate to the Counter page, and click the **Update Message** button. The message will show in the Counter.
+Run the app, navigate to the Counter page, and click the **Update Message** button. The message will show in the Toolbar.
 
