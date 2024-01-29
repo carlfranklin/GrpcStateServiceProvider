@@ -29,7 +29,7 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
     [Inject]
     public HttpClient httpClient { get; set; }
 
-    private T AppState { get; set; } = Activator.CreateInstance<T>();
+    private NotificationService<T> notificationService;
 
     // Represents a uniuqe id for this client, saved as a cookie.
     private string myId = string.Empty;
@@ -37,32 +37,30 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
     // Called by parent components to get a property value from AppState
     protected T GetPropertyValue<T>([CallerMemberName] string propertyName = null)
     {
-        // Get the properties from the AppState object
-        var property = AppState.GetType().GetProperty(propertyName);
-        // return the value
-        return (T)property.GetValue(AppState);
+        return (T)notificationService.GetProperty(propertyName);
     }
 
     // Called by parent components to set a property value in AppState
     protected void SetPropertyValue(object value, [CallerMemberName] string propertyName = null)
     {
-        // Get the properties from the AppState object
-        var property = AppState.GetType().GetProperty(propertyName);
-
-        // Set the value
-        property.SetValue(AppState, value);
+        notificationService.SetProperty(propertyName, value);
 
         // Sync to the server
         new Task(async () =>
         {
             await UpdateStateOnServer();
         }).Start();
-
-        // Notify any components that the property has changed
-        NotificationService.OnStateChanged(new StatePropertyChangedArgs(propertyName, value));
+        
+        // Notify others that the state has changed
+        notificationService.Notify();
 
         // re-render the component
         StateHasChanged();
+    }
+
+    protected override void OnInitialized()
+    {
+        notificationService = NotificationService<T>.Instance;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -70,7 +68,7 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
         if (firstRender)
         {
             // subscribe to the StateChanged event
-            NotificationService.StateChanged += NotificationService_StateChanged;
+            notificationService.StateChanged += NotificationService_StateChanged;
 
             var jsLoader = new JavaScriptLoader(_jsRuntime);
             await jsLoader.LoadScriptAsync();
@@ -130,8 +128,9 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
             foreach (var property in appState.GetType().GetProperties())
             {
                 var value = property.GetValue(appState);
-                property.SetValue(AppState, value);
+                notificationService.SetProperty(property.Name, value);
             }
+            notificationService.Notify();
             StateHasChanged();
         }
         catch (Exception ex)
@@ -144,7 +143,7 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
     public async Task UpdateStateOnServer()
     {
         // serialize the AppState object to json
-        var json = JsonSerializer.Serialize(AppState);
+        var json = JsonSerializer.Serialize(notificationService.State);
 
         // convert to a byte array
         var bytes = Encoding.UTF8.GetBytes(json);
@@ -160,11 +159,8 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
     }
 
     // Handlle the NotificationService_StateChanged event
-    private async void NotificationService_StateChanged(object sender, StatePropertyChangedArgs e)
+    private async void NotificationService_StateChanged(object sender, EventArgs e)
     {
-        // update the property value on AppState
-        var property = AppState.GetType().GetProperty(e.PropertyName);
-        property.SetValue(AppState, e.NewValue);
         // force a re-render
         await InvokeAsync(StateHasChanged);
     }
@@ -172,7 +168,7 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
     public async ValueTask DisposeAsync()
     {
         // unsubscribe from the StateChanged event
-        NotificationService.StateChanged -= NotificationService_StateChanged;
+        notificationService.StateChanged -= NotificationService_StateChanged;
         // update the state on the server
         await UpdateStateOnServer();
     }
