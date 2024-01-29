@@ -2,7 +2,7 @@
 
 `GrpcStateServiceProvider` fixes a problem with .NET 8 Blazor Web Apps where scoped services are repeatedly created and destroyed, making state persistence impossible. 
 
-IT supports .NET 8 Blazor Web Apps with **WebAssembly interactive render mode**, when the interactivity location is set to **per page/component**.
+IT supports .NET 8 Blazor Web Apps with **WebAssembly** and **Auto** interactive render modes, when the interactivity location is set to **per page/component**.
 
 If you are using the **Global** interactivity location, you do not need this library.
 
