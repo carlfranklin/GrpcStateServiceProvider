@@ -1,0 +1,22 @@
+﻿@inherits AppStateProviderBase<AppState>
+@implements IAppState
+
+@ChildContent
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    public string Message
+    {
+        get => (string)GetPropertyValue<string>();
+        set => SetPropertyValue(value);
+    }
+
+    public int Counter
+    {
+        get => (int)GetPropertyValue<int>();
+        set => SetPropertyValue(value);
+    }
+}

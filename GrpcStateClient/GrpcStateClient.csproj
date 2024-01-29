@@ -4,7 +4,25 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>GrpcStateClient</Title>
+		<Authors>Carl Franklin</Authors>
+		<Company>App vNext</Company>
+		<Description>Client-side package for handling application state in a .NET 8 Blazor Web App</Description>
+		<Copyright>Copyright © 2024 by App vNext, LLC</Copyright>
+		<RepositoryUrl>https://github.com/carlfranklin/GrpcStateServiceProvider</RepositoryUrl>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove="StateTypes.dll" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="grpcStateClient.js" />
+		<EmbeddedResource Include="StateTypes.dll">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</EmbeddedResource>
+	</ItemGroup>
 
 	<ItemGroup>
 		<SupportedPlatform Include="browser" />
@@ -25,7 +43,6 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\StateNotificationLibrary\StateNotificationLibrary.csproj" />
-	  <ProjectReference Include="..\StateTypes\StateTypes.csproj" />
 	</ItemGroup>
 
 </Project>

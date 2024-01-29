@@ -4,6 +4,13 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>GrpcStateServiceProvider</Title>
+		<Company>App vNext</Company>
+		<Authors>Carl Franklin</Authors>
+		<Description>Server-side services for handling application state in a .NET 8 Blazor Web App</Description>
+		<Copyright>Copyright © 2024 by App vNext, LLC</Copyright>
+		<RepositoryUrl>https://github.com/carlfranklin/GrpcStateServiceProvider</RepositoryUrl>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Grpc.AspNetCore" Version="2.60.0" />

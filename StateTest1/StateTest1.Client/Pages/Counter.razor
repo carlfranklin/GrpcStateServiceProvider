@@ -9,28 +9,28 @@
 }
 else
 {
-    <MyStateBag @ref=stateBag >
+    <AppStateProvider @ref=stateBag >
 
         <h1>Counter</h1>
 
-        <p role="status">Current count: @stateBag.Count</p>
+        <p role="status">Current count: @stateBag.Counter</p>
 
         <button class="btn btn-primary" @onclick="IncrementCount">Increment Counter</button>
 
         <button class="btn btn-primary" @onclick="UpdateMessage">Update Message</button>
 
-    </MyStateBag>
+    </AppStateProvider>
 }
 
 @code {
 
     bool loaded = false;
 
-    private MyStateBag stateBag { get; set; }
+    private AppStateProvider stateBag { get; set; }
 
     private void IncrementCount()
     {
-        stateBag.Count++;
+        stateBag.Counter++;
     }
 
     private void UpdateMessage()

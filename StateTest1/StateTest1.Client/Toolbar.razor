@@ -2,15 +2,15 @@
 
 @if (loaded)
 {
-    <MyStateBag @ref=stateBag>
+    <AppStateProvider @ref=stateBag>
         @stateBag.Message
-    </MyStateBag>
+    </AppStateProvider>
 }
 
 @code {
 
     bool loaded = false;
-    private MyStateBag stateBag { get; set; }
+    private AppStateProvider stateBag { get; set; }
 
     protected override void OnAfterRender(bool firstRender)
     {

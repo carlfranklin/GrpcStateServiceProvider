@@ -1,11 +1,15 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿
+using Microsoft.AspNetCore.Components;
 using System.Text.Json;
 using System.Text;
 using Google.Protobuf;
 using Microsoft.JSInterop;
 using System.Runtime.CompilerServices;
 using StateNotificationService;
-using StateTypes;
+using Microsoft.Extensions.Configuration;
+using System.Reflection;
+using System.Net.Http;
+using System.Dynamic;
 
 namespace GrpcStateClient;
 
@@ -14,7 +18,7 @@ namespace GrpcStateClient;
 /// created by the developer for their particular needs.
 /// 
 /// </summary>
-public class AppStateProviderBase : ComponentBase, IAsyncDisposable
+public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T : class
 {
     [Inject]
     public IJSRuntime _jsRuntime { get; set; }
@@ -22,51 +26,30 @@ public class AppStateProviderBase : ComponentBase, IAsyncDisposable
     [Inject]
     public AppStateTransport.AppStateTransportClient _appStateTransportClient { get; set; }
 
-    // required for JavaScript interop
-    private Lazy<Task<IJSObjectReference>> moduleTask;
+    [Inject]
+    public HttpClient httpClient { get; set; }
 
-    // AppState is defined in StateTypes, outside of this project so it can
-    // be easily modified by the developer
-    private AppState AppState { get; set; } = null;
-    
+    private T AppState { get; set; } = Activator.CreateInstance<T>();
+
     // Represents a uniuqe id for this client, saved as a cookie.
     private string myId = string.Empty;
-
-    // Ensures that AppState is not null
-    private void EnsureAppState()
-    {
-        if (AppState == null)
-        {
-            // go get the appstate from the server if it's null
-            new Task(async () =>
-            {
-                await LoadStateFromServer();
-            }).Start();
-
-            // If the server doesn't have it, return a new appstate
-            if (AppState == null)
-            {
-                AppState = new AppState();
-            }
-        }
-    }
 
     // Called by parent components to get a property value from AppState
     protected T GetPropertyValue<T>([CallerMemberName] string propertyName = null)
     {
-        EnsureAppState();
-        // use Reflection to get the property value from AppState
+        // Get the properties from the AppState object
         var property = AppState.GetType().GetProperty(propertyName);
+        // return the value
         return (T)property.GetValue(AppState);
     }
 
     // Called by parent components to set a property value in AppState
     protected void SetPropertyValue(object value, [CallerMemberName] string propertyName = null)
     {
-        EnsureAppState();
-
-        // use Reflection to set the property value on AppState
+        // Get the properties from the AppState object
         var property = AppState.GetType().GetProperty(propertyName);
+
+        // Set the value
         property.SetValue(AppState, value);
 
         // Sync to the server
@@ -89,18 +72,25 @@ public class AppStateProviderBase : ComponentBase, IAsyncDisposable
             // subscribe to the StateChanged event
             NotificationService.StateChanged += NotificationService_StateChanged;
 
-            moduleTask = new(() => _jsRuntime.InvokeAsync<IJSObjectReference>(
-                "import", "./_content/GrpcStateClient/JsInterop.js").AsTask());
+            var jsLoader = new JavaScriptLoader(_jsRuntime);
+            await jsLoader.LoadScriptAsync();
 
-            var module = await moduleTask.Value;
-
-            // create a unique id for this client, or get it from a cookie
-            myId = await module.InvokeAsync<string>("getCookie", "stateBagId");
-            if (string.IsNullOrEmpty(myId))
+            try
             {
-                myId = Guid.NewGuid().ToString();
-                await module.InvokeVoidAsync("setCookie", "stateBagId", myId, 365);
+                // create a unique id for this client, or get it from a cookie
+                myId = await _jsRuntime.InvokeAsync<string>("getCookie", "stateBagId");
+                if (string.IsNullOrEmpty(myId))
+                {
+                    myId = Guid.NewGuid().ToString();
+                    await _jsRuntime.InvokeVoidAsync("setCookie", "stateBagId", myId, 365);
+                }
             }
+            catch (Exception ex)
+            {
+
+            }
+            await _jsRuntime.InvokeVoidAsync("console.log", $"myID={myId}");
+
             // load the state from the server
             await LoadStateFromServer();
         }
@@ -112,43 +102,42 @@ public class AppStateProviderBase : ComponentBase, IAsyncDisposable
         var request = new GetAppStateRequest();
         request.ClientId = myId;
 
-        // go get the state
-        AppStateMessage state = await _appStateTransportClient.GetAppStateAsync(request);
-
-        // null?
-        if (state == null)
+        try
         {
-            // create a new AppState if it's still null
-            if (AppState == null)
-                AppState = new AppState();
-            return;
+            // go get the state
+            AppStateMessage state = await _appStateTransportClient.GetAppStateAsync(request);
+
+             // convert the state.Data to a byte array
+            var data = state.Data.ToByteArray();
+
+            // empty?
+            if (data.Length == 0)
+            {
+                return;
+            }
+
+            // convert bytes to json
+            var json = Encoding.UTF8.GetString(data);
+            if (string.IsNullOrEmpty(json))
+            {
+                return;
+            }
+
+            // deserialize the json into an AppState object
+            var appState = JsonSerializer.Deserialize<T>(json);
+
+            // set each property on the current AppState object using Reflection
+            foreach (var property in appState.GetType().GetProperties())
+            {
+                var value = property.GetValue(appState);
+                property.SetValue(AppState, value);
+            }
+            StateHasChanged();
         }
-
-        // convert the state.Data to a byte array
-        var data = state.Data.ToByteArray();
-
-        // empty?
-        if (data.Length == 0)
+        catch (Exception ex)
         {
-            // create a new AppState if it's still null
-            if (AppState == null)
-                AppState = new AppState();
-            return;
+
         }
-
-        // convert bytes to json
-        var json = Encoding.UTF8.GetString(data);
-
-        // deserialize the json into an AppState object
-        var appState = JsonSerializer.Deserialize<AppState>(json);
-
-        // set each property on the current AppState object using Reflection
-        foreach (var property in appState.GetType().GetProperties())
-        {
-            var value = property.GetValue(appState);
-            property.SetValue(AppState, value);
-        }
-        StateHasChanged();
     }
 
     // Uses gRPC to update the AppState on the server
@@ -182,11 +171,6 @@ public class AppStateProviderBase : ComponentBase, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        if (moduleTask.IsValueCreated)
-        {
-            var module = await moduleTask.Value;
-            await module.DisposeAsync();
-        }
         // unsubscribe from the StateChanged event
         NotificationService.StateChanged -= NotificationService_StateChanged;
         // update the state on the server

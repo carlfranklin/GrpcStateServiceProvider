@@ -1,4 +1,5 @@
-﻿namespace StateTypes;
+﻿
+namespace StateTypes;
 
 public interface IAppState
 {

@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>GrpcStateServiceProvider</id>
+    <version>1.0.4</version>
+    <authors>Carl Franklin</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Server-side services for handling application state in a .NET 8 Blazor Web App</description>
+  </metadata>
+</package>

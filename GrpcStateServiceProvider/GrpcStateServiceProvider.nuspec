@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <!-- Required elements-->
+    <id>GrpcStateServiceProvider</id>
+    <version>1.0.6</version>
+    <description>Server-side services for handling application state in a .NET 8 Blazor Web App</description>
+    <authors>Carl Franklin</authors>
+
+    <!-- Optional elements-->
+    <!-- ... other metadata elements like <projectUrl>, <tags>, etc. ... -->
+  </metadata>
+
+<files>
+  <file src="bin\Release\net8.0\GrpcStateServiceProvider.dll" target="lib\netstandard2.0" />
+  <file src="bin\Release\net8.0\GrpcStateClient.dll" target="lib\netstandard2.0" />
+  <file src="bin\Release\net8.0\StateNotificationLibrary.dll" target="lib\netstandard2.0" />
+</files>
+
+</package>
