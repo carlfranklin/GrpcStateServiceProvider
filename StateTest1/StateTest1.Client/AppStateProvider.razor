@@ -10,13 +10,13 @@
 
     public string Message
     {
-        get => (string)GetPropertyValue<string>();
+        get => GetPropertyValue<string>();
         set => SetPropertyValue(value);
     }
 
     public int Counter
     {
-        get => (int)GetPropertyValue<int>();
+        get => GetPropertyValue<int>();
         set => SetPropertyValue(value);
     }
 }

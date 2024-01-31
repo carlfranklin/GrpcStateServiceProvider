@@ -264,13 +264,13 @@ To the client project, add a new Razor component:
 
     public string Message
     {
-        get => (string)GetPropertyValue<string>();
+        get => GetPropertyValue<string>();
         set => SetPropertyValue(value);
     }
 
     public int Count
     {
-        get => (int)GetPropertyValue<int>();
+        get => GetPropertyValue<int>();
         set => SetPropertyValue(value);
     }
 }
