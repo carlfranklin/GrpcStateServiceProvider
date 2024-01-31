@@ -1,15 +1,10 @@
-﻿
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using System.Text.Json;
 using System.Text;
 using Google.Protobuf;
 using Microsoft.JSInterop;
 using System.Runtime.CompilerServices;
 using StateNotificationService;
-using Microsoft.Extensions.Configuration;
-using System.Reflection;
-using System.Net.Http;
-using System.Dynamic;
 
 namespace GrpcStateClient;
 
