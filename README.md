@@ -2,7 +2,7 @@
 
 `GrpcStateServiceProvider` fixes a problem with .NET 8 Blazor Web Apps where scoped services are repeatedly created and destroyed, making state persistence impossible. 
 
-IT supports .NET 8 Blazor Web Apps with **WebAssembly** and **Auto** interactive render modes, when the interactivity location is set to **per page/component**.
+It supports .NET 8 Blazor Web Apps with the interactivity location is set to **per page/component**. It will work with the Interactive Render Mode set to **Server**, **WebAssembly**, or **Auto**. The configuration for each of these will be slightly different.
 
 If you are using the **Global** interactivity location, you do not need this library.
 
@@ -21,7 +21,7 @@ public static class ServerSideStateBag
 }
 ```
 
-The string is generated on the client, in a class that will be the base class for the Blazor component used in the WebAssembly app. This is the `AppStateProviderBase` class in the `GrpcStateClient` project, a Razor Class Library.
+The string is generated on the client, in a class that will be the base class for the Blazor component used in the client app. This is the `AppStateProviderBase` class in the `GrpcStateClient` project, a Razor Class Library.
 
 This assembly has embedded JavaScript code that will save and load cookies:
 
@@ -52,7 +52,7 @@ When the `AppStateProviderBase` class is initialized and rendered, it will look 
 
 The `AppStateProviderBase` class communicates with the `AppStateTransportService` class via gRPC, ensuring fast and efficient transport between client and server.
 
-In your WebAssembly Blazor Web App you will create an interface called `IAppState` and an implementation class called `AppState`. Actually, it doesn't matter what you call them, but you do need an interface and an implementation.
+In your Blazor Web App you will create an interface called `IAppState` and an implementation class called `AppState`. Actually, it doesn't matter what you call them, but you do need an interface and an implementation.
 
 In this demo they look like this:
 
@@ -117,7 +117,9 @@ The end result is a robust state management system that makes it easy for the de
 
 ## Create a Demo App
 
-Step 1 is to create a new Blazor Web App using .NET 8 with the interactive render mode set to WebAssembly and the Interactivity location set to per page/component.
+Create a new Blazor Web App using .NET 8 with the Interactivity location set to per page/component.
+
+In this case I'm setting the interactive render mode to **WebAssembly** .
 
 ![image-20240128225722883](images/image-20240128225722883.png)
 
@@ -128,6 +130,8 @@ GrpcStateServiceProvider
 ```
 
 ### Server Configuration
+
+> :point_up: If the Interactive Render Mode in your solution is set to **Server** or **Auto**, you must add both the client and server configuration in the server project's *Program.cs*, with modifications that I will mention.
 
 To the server project, add the following packages:
 
@@ -168,7 +172,7 @@ To the client project, add the following packages:
 </PackageReference>
 ```
 
-To the client project's *Program.cs* file, add the following:
+Add the following to the client project's *Program.cs*, or if you are using **Server** or **Auto** render mode, you must also add them to the server project:
 
 ```c#
 // required for accessing AppStateTransportService 
@@ -192,6 +196,25 @@ builder.Services.AddSingleton(services =>
     return new AppStateTransport.AppStateTransportClient(channel);
 });
 ```
+
+If you are using **Server** or **Auto** render mode, when adding these lines to the server project, you must get the base address from *\Properties\launchSettings.json*. It might look something like this:
+
+```c#
+// Required for calling the AppStateTransportService via GrpcStateClient
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = 
+    new Uri("https://localhost:7283") });
+
+// Required for calling the AppStateTransportService via GrpcStateClient
+builder.Services.AddSingleton(services =>
+{
+    var httpClient = new HttpClient(new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()));
+    var baseUri = new Uri("https://localhost:7283") });
+    var channel = GrpcChannel.ForAddress(baseUri, new GrpcChannelOptions { HttpClient = httpClient });
+    return new AppStateTransport.AppStateTransportClient(channel);
+});
+```
+
+When you go to deploy your app, you will change ` "https://localhost:7283"` to the URL of the production server.
 
 To the *_Imports.razor*, add the following:
 

@@ -3,7 +3,7 @@
   <metadata>
     <!-- Required elements-->
     <id>GrpcStateServiceProvider</id>
-    <version>1.0.8</version>
+    <version>1.1.0</version>
     <description>Server-side services for handling application state in a .NET 8 Blazor Web App</description>
     <authors>Carl Franklin</authors>
 
