@@ -153,6 +153,14 @@ builder.Services.ConfigureStateServices(new Uri("https://localhost:7255/"));
 
 Replace `7255` with the SSL port of your server app, which can be found in *Properties\launchSettings.json*. When you go to deploy your app, you will change ` "https://localhost:7225"` to the URL of the production server.
 
+Now add the following line after `var app = builder.Build();`:
+
+```c#
+app.ConfigureStateServerMiddleware();
+```
+
+This ensures the middleware is configured properly.
+
 ### Client Configuration
 
 To the client project, add the following packages:
@@ -161,7 +169,7 @@ To the client project, add the following packages:
 <PackageReference Include="Google.Protobuf" Version="3.25.2" />
 <PackageReference Include="Grpc.Net.Client" Version="2.60.0" />
 <PackageReference Include="Grpc.Net.Client.Web" Version="2.60.0" />
-<PackageReference Include="Grpc.Tools" Version="2.60.0">
+<PackageReference Include="Grpc.Tools" Version="2.61.0">
     <PrivateAssets>all</PrivateAssets>
     <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 </PackageReference>

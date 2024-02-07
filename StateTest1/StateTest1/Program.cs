@@ -12,6 +12,9 @@ builder.Services.ConfigureStateServices(new Uri("https://localhost:7255/"));
 
 var app = builder.Build();
 
+// Required for the AppStateTransportService
+app.ConfigureStateServerMiddleware();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -28,8 +31,6 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseAntiforgery();
-
-app.ConfigureStateServerMiddleware();
 
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
