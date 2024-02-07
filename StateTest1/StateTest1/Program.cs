@@ -8,15 +8,9 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 // Required for the AppStateTransportService
-builder.Services.AddGrpc();
+builder.Services.ConfigureStateServices(new Uri("https://localhost:7255/"));
 
 var app = builder.Build();
-
-// Required for the AppStateTransportService
-app.UseGrpcWeb();
-
-// Required for the AppStateTransportService
-app.MapGrpcService<AppStateTransportService>().EnableGrpcWeb();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -34,6 +28,8 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseAntiforgery();
+
+app.ConfigureStateServerMiddleware();
 
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()

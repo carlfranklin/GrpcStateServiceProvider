@@ -9,6 +9,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\GrpcStateClient\GrpcStateClient.csproj" />
 		<ProjectReference Include="..\..\GrpcStateServiceProvider\GrpcStateServiceProvider.csproj" />
+		<ProjectReference Include="..\..\StateNotificationLibrary\StateNotificationLibrary.csproj" />
 		<ProjectReference Include="..\StateTest1.Client\StateTest1.Client.csproj" />
 	</ItemGroup>
 	<ItemGroup>

@@ -14,14 +14,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="StateTypes.dll" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<EmbeddedResource Include="grpcStateClient.js" />
-		<EmbeddedResource Include="StateTypes.dll">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</EmbeddedResource>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -30,6 +23,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.1" />
 		<PackageReference Include="Google.Protobuf" Version="3.25.2" />

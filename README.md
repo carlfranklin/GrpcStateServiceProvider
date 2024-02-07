@@ -148,15 +148,10 @@ using GrpcStateServiceProvider; // Required for the AppStateTransportService
 
 ```c#
 // Required for the AppStateTransportService
-builder.Services.AddGrpc();
+builder.Services.ConfigureStateServices(new Uri("https://localhost:7255/"));
 ```
 
-```c#
-// Required for the AppStateTransportService
-app.UseGrpcWeb();
-// Required for the AppStateTransportService
-app.MapGrpcService<AppStateTransportService>().EnableGrpcWeb();
-```
+Replace `7255` with the SSL port of your server app, which can be found in *Properties\launchSettings.json*. When you go to deploy your app, you will change ` "https://localhost:7225"` to the URL of the production server.
 
 ### Client Configuration
 
@@ -196,25 +191,6 @@ builder.Services.AddSingleton(services =>
     return new AppStateTransport.AppStateTransportClient(channel);
 });
 ```
-
-If you are using **Server** or **Auto** render mode, when adding these lines to the server project, you must get the base address from *\Properties\launchSettings.json*. It might look something like this:
-
-```c#
-// Required for calling the AppStateTransportService via GrpcStateClient
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = 
-    new Uri("https://localhost:7283") });
-
-// Required for calling the AppStateTransportService via GrpcStateClient
-builder.Services.AddSingleton(services =>
-{
-    var httpClient = new HttpClient(new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()));
-    var baseUri = new Uri("https://localhost:7283") });
-    var channel = GrpcChannel.ForAddress(baseUri, new GrpcChannelOptions { HttpClient = httpClient });
-    return new AppStateTransport.AppStateTransportClient(channel);
-});
-```
-
-When you go to deploy your app, you will change ` "https://localhost:7283"` to the URL of the production server.
 
 To the *_Imports.razor*, add the following:
 

@@ -12,6 +12,13 @@
 		<Copyright>Copyright © 2024 by App vNext, LLC</Copyright>
 		<RepositoryUrl>https://github.com/carlfranklin/GrpcStateServiceProvider</RepositoryUrl>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove="GrpcStateServiceProvider.1.0.8.nupkg" />
+	  <None Remove="GrpcStateServiceProvider.1.1.0.nupkg" />
+	  <None Remove="GrpcStateServiceProvider.nuspec" />
+	  <None Remove="nuget.exe" />
+	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Grpc.AspNetCore" Version="2.60.0" />
 		<PackageReference Include="Grpc.AspNetCore.Web" Version="2.60.0" />

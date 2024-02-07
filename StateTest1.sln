@@ -7,13 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StateTest1", "StateTest1\St
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StateTest1.Client", "StateTest1\StateTest1.Client\StateTest1.Client.csproj", "{8311B9AD-8B70-4C38-B5C7-B78A8ED47A42}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcStateServiceProvider", "GrpcStateServiceProvider\GrpcStateServiceProvider.csproj", "{C867302C-9C20-4794-8648-A8A6B05B0A14}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrpcStateServiceProvider", "GrpcStateServiceProvider\GrpcStateServiceProvider.csproj", "{C867302C-9C20-4794-8648-A8A6B05B0A14}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcStateClient", "GrpcStateClient\GrpcStateClient.csproj", "{45833161-8716-4D48-B22F-DD44BE924952}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrpcStateClient", "GrpcStateClient\GrpcStateClient.csproj", "{45833161-8716-4D48-B22F-DD44BE924952}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StateNotificationLibrary", "StateNotificationLibrary\StateNotificationLibrary.csproj", "{99B5D818-E95E-48E3-B074-B67D285EA539}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StateTypes", "StateTypes\StateTypes.csproj", "{9C94DD0B-1D71-4512-BF9D-301800B4C5D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StateNotificationLibrary", "StateNotificationLibrary\StateNotificationLibrary.csproj", "{99B5D818-E95E-48E3-B074-B67D285EA539}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +39,6 @@ Global
 		{99B5D818-E95E-48E3-B074-B67D285EA539}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99B5D818-E95E-48E3-B074-B67D285EA539}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99B5D818-E95E-48E3-B074-B67D285EA539}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9C94DD0B-1D71-4512-BF9D-301800B4C5D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9C94DD0B-1D71-4512-BF9D-301800B4C5D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9C94DD0B-1D71-4512-BF9D-301800B4C5D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9C94DD0B-1D71-4512-BF9D-301800B4C5D7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
