@@ -9,10 +9,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="AppStateBase.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.11" />
 		<PackageReference Include="Google.Protobuf" Version="3.36.1" />
 		<PackageReference Include="Grpc.Net.Client" Version="2.83.0" />
