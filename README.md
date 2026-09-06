@@ -121,7 +121,7 @@ Create a new Blazor Web App using .NET 10 with the Interactivity location set to
 
 In this case I'm setting the interactive render mode to **WebAssembly** .
 
-![image-20240128225722883](images/image-20240128225722883.png)
+![blazor-web-app-net10](images/blazor-web-app-net10.png)
 
 Add the following NuGet packages to the solution:
 
