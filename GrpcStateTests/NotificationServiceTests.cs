@@ -21,21 +21,24 @@ public class NotificationServiceTests
     }
 
     [Fact]
-    public void Instance_IsSingleton()
+    public void Instances_AreIndependent()
     {
-        Assert.Same(NotificationService<CounterState>.Instance, NotificationService<CounterState>.Instance);
+        var first = new NotificationService<CounterState>();
+        var second = new NotificationService<CounterState>();
+        first.SetProperty("Count", 5);
+        Assert.Equal(0, second.GetProperty("Count"));
     }
 
     [Fact]
     public void GetProperty_ReturnsDefault_ForNewState()
     {
-        Assert.Equal(0, NotificationService<CounterState>.Instance.GetProperty("Count"));
+        Assert.Equal(0, new NotificationService<CounterState>().GetProperty("Count"));
     }
 
     [Fact]
     public void SetProperty_UpdatesValue()
     {
-        var service = NotificationService<TextState>.Instance;
+        var service = new NotificationService<TextState>();
         service.SetProperty("Name", "Buzzby");
         Assert.Equal("Buzzby", service.GetProperty("Name"));
     }
@@ -44,27 +47,27 @@ public class NotificationServiceTests
     public void SetProperty_ThrowsArgumentException_ForUnknownProperty()
     {
         Assert.Throws<ArgumentException>(
-            () => NotificationService<CounterState>.Instance.SetProperty("Missing", 1));
+            () => new NotificationService<CounterState>().SetProperty("Missing", 1));
     }
 
     [Fact]
     public void GetProperty_ThrowsArgumentException_ForUnknownProperty()
     {
         Assert.Throws<ArgumentException>(
-            () => NotificationService<CounterState>.Instance.GetProperty("Missing"));
+            () => new NotificationService<CounterState>().GetProperty("Missing"));
     }
 
     [Fact]
     public void SetProperty_ThrowsArgumentException_ForReadOnlyProperty()
     {
         Assert.Throws<ArgumentException>(
-            () => NotificationService<ReadWriteState>.Instance.SetProperty("ReadOnlyValue", 1));
+            () => new NotificationService<ReadWriteState>().SetProperty("ReadOnlyValue", 1));
     }
 
     [Fact]
     public void Notify_RaisesStateChanged()
     {
-        var service = NotificationService<CounterState>.Instance;
+        var service = new NotificationService<CounterState>();
         bool raised = false;
         EventHandler handler = (s, e) => raised = true;
         service.StateChanged += handler;

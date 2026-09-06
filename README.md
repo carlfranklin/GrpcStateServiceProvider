@@ -109,11 +109,20 @@ You must inherit from `AppStateProviderBase<T>` and you must implement your stat
 
 Your property handlers must look like the above example. This allows the base class to do all the work of syncing values on the server and notifying other instances of your `AppStateProvider` component when values change.
 
-On the client, the `NotificationService<T>` class (in the `StateNotificationLibrary`) is a singleton that serves two purposes. It keeps a single instance of your `AppState` class and it also notifies any other components when one component mutates the state. 
+On the client, the `NotificationService<T>` class (in the `StateNotificationLibrary`) is a scoped service that serves two purposes. It keeps a single instance of your `AppState` class and it also notifies any other components when one component mutates the state. Registering it as a scoped service keeps the state isolated: per browser in a WebAssembly app and per circuit on the server.
 
 It provides `GetProperty` and `SetProperty` methods that are used by `AppStateProviderBase` to read and write property values.
 
 The end result is a robust state management system that makes it easy for the developer to manage state without plumbing code.
+
+### State Isolation
+
+`NotificationService<T>` is registered as a **scoped** service, so every user gets their own isolated copy of the state:
+
+- **WebAssembly** — there is one DI scope per browser tab, so each browser holds its own `AppState`.
+- **Interactive Server** — there is one DI scope per circuit, so each connected user holds their own `AppState`.
+
+This is what makes the **Interactive Server** render mode safe to use: two users on the same page never see each other's state, and a change in one user's circuit never re-renders another user's components. (In 1.x the service was a process-wide singleton, which shared state across all server circuits; scoping it fixes that leak.)
 
 ## Create a Demo App
 
@@ -199,6 +208,9 @@ builder.Services.AddSingleton(services =>
     var channel = GrpcChannel.ForAddress(baseUri, new GrpcChannelOptions { HttpClient = httpClient });
     return new AppStateTransport.AppStateTransportClient(channel);
 });
+
+// Required for the AppStateProviderBase to hold and notify state changes
+builder.Services.AddScoped<NotificationService<AppState>>();
 ```
 
 To the *_Imports.razor*, add the following:

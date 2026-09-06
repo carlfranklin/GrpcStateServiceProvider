@@ -3,6 +3,7 @@ using Grpc.Net.Client;
 using GrpcStateClient;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using StateNotificationService;
 
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -19,5 +20,8 @@ builder.Services.AddSingleton(services =>
     var channel = GrpcChannel.ForAddress(baseUri, new GrpcChannelOptions { HttpClient = httpClient });
     return new AppStateTransport.AppStateTransportClient(channel);
 });
+
+// Required for the AppStateProviderBase to hold and notify state changes
+builder.Services.AddScoped<NotificationService<AppState>>();
 
 await builder.Build().RunAsync();

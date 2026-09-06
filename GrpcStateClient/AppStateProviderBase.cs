@@ -25,7 +25,8 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
     [Inject]
     public ILogger<AppStateProviderBase<T>> Logger { get; set; } = null!;
 
-    private NotificationService<T> notificationService;
+    [Inject]
+    public NotificationService<T> NotificationService { get; set; }
 
     // Represents a uniuqe id for this client, saved as a cookie.
     private string myId = string.Empty;
@@ -33,27 +34,22 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
     // Called by parent components to get a property value from AppState
     protected TProp GetPropertyValue<TProp>([CallerMemberName] string propertyName = null)
     {
-        return (TProp)notificationService.GetProperty(propertyName);
+        return (TProp)NotificationService.GetProperty(propertyName);
     }
 
     // Called by parent components to set a property value in AppState
     protected void SetPropertyValue(object value, [CallerMemberName] string propertyName = null)
     {
-        notificationService.SetProperty(propertyName, value);
+        NotificationService.SetProperty(propertyName, value);
 
         // Sync to the server (fire-and-forget)
         _ = UpdateStateOnServer();
         
         // Notify others that the state has changed
-        notificationService.Notify();
+        NotificationService.Notify();
 
         // re-render the component
         StateHasChanged();
-    }
-
-    protected override void OnInitialized()
-    {
-        notificationService = NotificationService<T>.Instance;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -61,7 +57,7 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
         if (firstRender)
         {
             // subscribe to the StateChanged event
-            notificationService.StateChanged += NotificationService_StateChanged;
+            NotificationService.StateChanged += NotificationService_StateChanged;
 
             var jsLoader = new JavaScriptLoader(_jsRuntime);
             await jsLoader.LoadScriptAsync();
@@ -121,9 +117,9 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
             foreach (var property in appState.GetType().GetProperties())
             {
                 var value = property.GetValue(appState);
-                notificationService.SetProperty(property.Name, value);
+                NotificationService.SetProperty(property.Name, value);
             }
-            notificationService.Notify();
+            NotificationService.Notify();
             StateHasChanged();
         }
         catch (Exception ex)
@@ -138,7 +134,7 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
         try
         {
             // serialize the AppState object to json
-            var json = JsonSerializer.Serialize(notificationService.State);
+            var json = JsonSerializer.Serialize(NotificationService.State);
 
             // convert to a byte array
             var bytes = Encoding.UTF8.GetBytes(json);
@@ -168,7 +164,7 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
     public async ValueTask DisposeAsync()
     {
         // unsubscribe from the StateChanged event
-        notificationService.StateChanged -= NotificationService_StateChanged;
+        NotificationService.StateChanged -= NotificationService_StateChanged;
         // update the state on the server
         await UpdateStateOnServer();
     }

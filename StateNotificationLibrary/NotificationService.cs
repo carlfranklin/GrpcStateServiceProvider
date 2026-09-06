@@ -7,25 +7,19 @@ namespace StateNotificationService;
 /// This service is used to notify consumers of the state when it changes.
 /// It exists in a separate library so that it can be used by both the GrpcStateClient and 
 /// your application.
+/// 
+/// Register it as a scoped service (e.g. <c>builder.Services.AddScoped&lt;NotificationService&lt;AppState&gt;&gt;()</c>).
+/// Scoping keeps the state isolated: per browser in a WebAssembly app and per circuit on the server.
 /// </summary>
 public class NotificationService<T> where T : class
 {
-    // Singleton instance
-    private static readonly NotificationService<T> instance = new NotificationService<T>();
-
-    // Private member of type T
+    // Member of type T
     private T state;
 
-    // Private constructor to prevent instantiation from outside
-    private NotificationService()
+    // Public constructor so the service can be created by the DI container
+    public NotificationService()
     {
         state = Activator.CreateInstance<T>();
-    }
-
-    // Public static method to get the instance of the class
-    public static NotificationService<T> Instance
-    {
-        get => instance;
     }
 
     // Event that consumers can subscribe to for notifications of when the state changes
