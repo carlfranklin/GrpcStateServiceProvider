@@ -1,12 +1,12 @@
 # GrpcStateServiceProvider
 
-`GrpcStateServiceProvider` fixes a problem with .NET 8 Blazor Web Apps where scoped services are repeatedly created and destroyed, making state persistence impossible. 
+`GrpcStateServiceProvider` fixes a problem with .NET 10 Blazor Web Apps where scoped services are repeatedly created and destroyed, making state persistence impossible. 
 
-It supports .NET 8 Blazor Web Apps with the interactivity location is set to **per page/component**. It will work with the Interactive Render Mode set to **Server**, **WebAssembly**, or **Auto**. The configuration for each of these will be slightly different.
+It supports .NET 10 Blazor Web Apps with the interactivity location is set to **per page/component**. It will work with the Interactive Render Mode set to **Server**, **WebAssembly**, or **Auto**. The configuration for each of these will be slightly different.
 
 If you are using the **Global** interactivity location, you do not need this library.
 
-This package must be installed on both the client and the server project.
+These packages must be installed on both the client and the server project.
 
 ## How does it work?
 
@@ -17,7 +17,7 @@ On the server side in the `GrpcStateServiceProvider` project, there is a diction
 ```C#
 public static class ServerSideStateBag
 {
-    public static Dictionary<string, byte[]> State = new Dictionary<string, byte[]>();
+    public static ConcurrentDictionary<string, byte[]> State = new ConcurrentDictionary<string, byte[]>();
 }
 ```
 
@@ -62,7 +62,7 @@ In this demo they look like this:
 public interface IAppState
 {
     string Message { get; set; }
-    int Count { get; set; }
+    int Counter { get; set; }
 }
 ```
 
@@ -72,7 +72,7 @@ public interface IAppState
 public class AppState : IAppState
 {
     public string Message { get; set; } = string.Empty;
-    public int Count { get; set; }
+    public int Counter { get; set; }
 }
 ```
 
@@ -93,13 +93,13 @@ Your implementation is simple. It looks like this:
 
     public string Message
     {
-        get => (string)GetPropertyValue<string>();
+        get => GetPropertyValue<string>();
         set => SetPropertyValue(value);
     }
 
     public int Counter
     {
-        get => (int)GetPropertyValue<int>();
+        get => GetPropertyValue<int>();
         set => SetPropertyValue(value);
     }
 }
@@ -117,17 +117,18 @@ The end result is a robust state management system that makes it easy for the de
 
 ## Create a Demo App
 
-Create a new Blazor Web App using .NET 8 with the Interactivity location set to per page/component.
+Create a new Blazor Web App using .NET 10 with the Interactivity location set to per page/component.
 
 In this case I'm setting the interactive render mode to **WebAssembly** .
 
 ![image-20240128225722883](images/image-20240128225722883.png)
 
-Add the following NuGet package to the the solution (both projects):
+Add the following NuGet packages to the solution:
 
-```
-GrpcStateServiceProvider
-```
+- **Server** project: `GrpcStateServiceProvider`
+- **Client** project: `GrpcStateClient`
+
+The server package depends on the client package, so a server project only needs `GrpcStateServiceProvider`.
 
 ### Server Configuration
 
@@ -136,8 +137,8 @@ GrpcStateServiceProvider
 To the server project, add the following packages:
 
 ```xml
-<PackageReference Include="Grpc.AspNetCore" Version="2.60.0" />
-<PackageReference Include="Grpc.AspNetCore.Web" Version="2.60.0" />
+<PackageReference Include="Grpc.AspNetCore" Version="2.83.0" />
+<PackageReference Include="Grpc.AspNetCore.Web" Version="2.83.0" />
 ```
 
 Add the following to the *Program.cs* file:
@@ -166,10 +167,10 @@ This ensures the middleware is configured properly.
 To the client project, add the following packages:
 
 ```xml
-<PackageReference Include="Google.Protobuf" Version="3.25.2" />
-<PackageReference Include="Grpc.Net.Client" Version="2.60.0" />
-<PackageReference Include="Grpc.Net.Client.Web" Version="2.60.0" />
-<PackageReference Include="Grpc.Tools" Version="2.61.0">
+<PackageReference Include="Google.Protobuf" Version="3.36.1" />
+<PackageReference Include="Grpc.Net.Client" Version="2.83.0" />
+<PackageReference Include="Grpc.Net.Client.Web" Version="2.83.0" />
+<PackageReference Include="Grpc.Tools" Version="2.83.0">
     <PrivateAssets>all</PrivateAssets>
     <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 </PackageReference>
@@ -215,7 +216,7 @@ To the client project, add the following two .cs files:
 public interface IAppState
 {
     string Message { get; set; }
-    int Count { get; set; }
+    int Counter { get; set; }
 }
 ```
 
@@ -225,7 +226,7 @@ public interface IAppState
 public class AppState : IAppState
 {
     public string Message { get; set; } = string.Empty;
-    public int Count { get; set; }
+    public int Counter { get; set; }
 }
 ```
 
@@ -252,7 +253,7 @@ To the client project, add a new Razor component:
         set => SetPropertyValue(value);
     }
 
-    public int Count
+    public int Counter
     {
         get => GetPropertyValue<int>();
         set => SetPropertyValue(value);
@@ -282,7 +283,7 @@ else
 
         <h1>Counter</h1>
 
-        <p role="status">Current count: @appState.Count</p>
+        <p role="status">Current count: @appState.Counter</p>
 
         <button class="btn btn-primary" @onclick="IncrementCount">Increment Counter</button>
 
@@ -299,7 +300,7 @@ else
 
     private void IncrementCount()
     {
-        appState.Count++;
+        appState.Counter++;
     }
 
     private void UpdateMessage()
