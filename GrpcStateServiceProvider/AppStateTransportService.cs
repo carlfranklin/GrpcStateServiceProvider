@@ -1,10 +1,19 @@
 ﻿using Google.Protobuf;
 using Grpc.Core;
 using GrpcStateClient;
+using Microsoft.Extensions.Logging;
+
 namespace GrpcStateServiceProvider;
 
 public class AppStateTransportService : AppStateTransport.AppStateTransportBase
 {
+    private readonly ILogger<AppStateTransportService> _logger;
+
+    public AppStateTransportService(ILogger<AppStateTransportService> logger)
+    {
+        _logger = logger;
+    }
+
     public override Task<AppStateMessage> GetAppState(GetAppStateRequest request,
         ServerCallContext context)
     {
@@ -15,16 +24,14 @@ public class AppStateTransportService : AppStateTransport.AppStateTransportBase
             response.ClientId = clientId;
             response.ErrorMessage = "";
 
-            if (!ServerSideStateBag.State.ContainsKey(clientId))
-            {
-                ServerSideStateBag.State.Add(clientId, new byte[0]);
-            }
+            ServerSideStateBag.State.TryAdd(clientId, new byte[0]);
 
             response.Data = ByteString.CopyFrom(ServerSideStateBag.State[clientId]);
             return Task.FromResult(response);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "GetAppState failed for client {ClientId}.", request.ClientId);
             response.ErrorMessage = ex.Message;
             response.Data = ByteString.Empty;
             return Task.FromResult(response);
@@ -39,14 +46,7 @@ public class AppStateTransportService : AppStateTransport.AppStateTransportBase
 
         try
         {
-            if (!ServerSideStateBag.State.ContainsKey(clientId))
-            {
-                ServerSideStateBag.State.Add(clientId, data);
-            }
-            else
-            {
-                ServerSideStateBag.State[clientId] = data;
-            }
+            ServerSideStateBag.State[clientId] = data;
 
             return Task.FromResult(new UpdateAppStateResponse
             {
@@ -55,6 +55,7 @@ public class AppStateTransportService : AppStateTransport.AppStateTransportBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "UpdateAppState failed for client {ClientId}.", clientId);
             return Task.FromResult(new UpdateAppStateResponse
             {
                 Message = ex.Message

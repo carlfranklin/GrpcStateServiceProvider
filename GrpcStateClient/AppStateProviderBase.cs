@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Text;
 using Google.Protobuf;
@@ -22,7 +23,7 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
     public AppStateTransport.AppStateTransportClient _appStateTransportClient { get; set; }
 
     [Inject]
-    public HttpClient httpClient { get; set; }
+    public ILogger<AppStateProviderBase<T>> Logger { get; set; } = null!;
 
     private NotificationService<T> notificationService;
 
@@ -30,9 +31,9 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
     private string myId = string.Empty;
 
     // Called by parent components to get a property value from AppState
-    protected T GetPropertyValue<T>([CallerMemberName] string propertyName = null)
+    protected TProp GetPropertyValue<TProp>([CallerMemberName] string propertyName = null)
     {
-        return (T)notificationService.GetProperty(propertyName);
+        return (TProp)notificationService.GetProperty(propertyName);
     }
 
     // Called by parent components to set a property value in AppState
@@ -40,11 +41,8 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
     {
         notificationService.SetProperty(propertyName, value);
 
-        // Sync to the server
-        new Task(async () =>
-        {
-            await UpdateStateOnServer();
-        }).Start();
+        // Sync to the server (fire-and-forget)
+        _ = UpdateStateOnServer();
         
         // Notify others that the state has changed
         notificationService.Notify();
@@ -80,9 +78,9 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
             }
             catch (Exception ex)
             {
-
+                Logger.LogError(ex, "Failed to read or create the stateBagId cookie; state will not be persisted to the server.");
             }
-            await _jsRuntime.InvokeVoidAsync("console.log", $"myID={myId}");
+            Logger.LogDebug("State bag ID: {StateBagId}", myId);
 
             // load the state from the server
             await LoadStateFromServer();
@@ -130,27 +128,34 @@ public class AppStateProviderBase<T> : ComponentBase, IAsyncDisposable where T :
         }
         catch (Exception ex)
         {
-
+            Logger.LogError(ex, "Failed to load state from the server.");
         }
     }
 
     // Uses gRPC to update the AppState on the server
     public async Task UpdateStateOnServer()
     {
-        // serialize the AppState object to json
-        var json = JsonSerializer.Serialize(notificationService.State);
-
-        // convert to a byte array
-        var bytes = Encoding.UTF8.GetBytes(json);
-
-        // update the state on the server
-        var state = new AppStateMessage
+        try
         {
-            ClientId = myId,
-            ErrorMessage = "",
-            Data = ByteString.CopyFrom(bytes)
-        };
-        await _appStateTransportClient.UpdateAppStateAsync(state);
+            // serialize the AppState object to json
+            var json = JsonSerializer.Serialize(notificationService.State);
+
+            // convert to a byte array
+            var bytes = Encoding.UTF8.GetBytes(json);
+
+            // update the state on the server
+            var state = new AppStateMessage
+            {
+                ClientId = myId,
+                ErrorMessage = "",
+                Data = ByteString.CopyFrom(bytes)
+            };
+            await _appStateTransportClient.UpdateAppStateAsync(state);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to update state on the server.");
+        }
     }
 
     // Handlle the NotificationService_StateChanged event
